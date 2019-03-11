@@ -1,0 +1,129 @@
+---
+title: "Counts processing"
+output: html_notebook
+---
+
+```{r}
+options(stringsAsFactors = FALSE)
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(DESeq2)
+
+bowtie_lib_path = "Bowtie/lib"
+get_counts_from_mapped <- function(folder,sample,lib)
+{
+  #reads in the mapped file - containing only seqeunces mapped to the reference
+  tmp <- read.delim(paste0(folder,"/",sample,"/mapped_",sample,".txt"),header = FALSE)
+  tmp <- as.data.table(tmp)
+  
+  #collapsed read ID and counts
+  tmp[, c("read", "counts") := tstrsplit(V1, "-", fixed=TRUE)]
+  tmp<-tmp[,counts:=as.numeric(counts)]
+  
+  tmp[, c("name", "rownum","consensus") := tstrsplit(V2, ";", fixed=TRUE)]
+  tmp[,consensus:=substr(consensus,regexpr("seq:",consensus)+4,100)]
+  tmp<- tmp%>%group_by(consensus) %>% summarise(counts = sum(counts)) %>% as.data.table()
+  setkey(tmp, consensus)
+  
+  tmp<-left_join(lib,tmp,by="consensus")
+
+  tmp[is.na(tmp)] <- 0
+  
+  #return counts_tab for one sample
+  return(tmp)
+}
+
+assemble_mat <- function(folder, design, col_data)
+{
+  lib<-data.table(read.table(paste0(bowtie_lib_path,design,".txt")));lib[,lib:=NULL];lib[,name:=NULL];
+  
+  samp <- filter(col_data, lib==design) %>% select(name) %>% unlist()
+  
+  #arranges the counts in a counts_tab format - each column is a sample, each row is a k-mer
+  counts_tab <- get_counts_from_mapped(folder,samp[1],lib)
+  name = paste(samp[1],sep = "")
+  setnames(counts_tab,"counts",name)
+  print(paste0(samp[1]," counts>0: ",sum(counts_tab[,eval(name)]>0)))
+  for (i in 2:length(samp))
+  {
+    tmp <- get_counts_from_mapped(folder,samp[i],lib)
+    name = paste(samp[i],sep = "")
+    setnames(tmp,"counts",name)
+    counts_tab <- left_join(counts_tab,tmp)
+    print(paste0(samp[i]," counts>0: ",sum(counts_tab[,eval(name)]>0)))
+  }
+  return(counts_tab)
+}
+
+#need to enter location of bowtie results folder, sample numbers (available also at col_data)
+folder <- "bowtie"
+
+#samp from col_data
+col_data <- fread("coldat.csv", stringsAsFactors = F)
+```
+
+```{r}
+#write D5
+design="D5"
+samp <- filter(col_data, lib==design) %>% select(name) %>% unlist()
+countmat_D5 <- assemble_mat(folder, design, col_data)
+countmat_D5 <- as.data.table(countmat_D5)
+#setnames(countmat_D5, col_data$col_nam, col_data$name)
+
+write("sample\tunique\treads", file = "stats/bowtie_D5.txt", append = F)
+for (i in samp)
+{
+  reads=sum(countmat_D5[,..i])
+  uniq=sum(countmat_D5[,..i]>0)
+  line=paste(i,uniq,reads,sep="\t")
+  print(line)
+  write(line, file = "stats/bowtie_D5.txt", append = T)
+}
+uniq = sum(rowSums(countmat_D5[,3:ncol(countmat_D5)])>0)
+line=paste("total",uniq,sep="\t")
+print(line)
+write(line, file = "stats/bowtie_D5.txt", append = T)
+
+write.table(countmat_D5,"Counts/counts_D5.txt")
+```
+
+```{r}
+#load file:
+countmat_D5 <- fread("Counts/counts_D5.txt")
+countmat_D5$V1 <- NULL
+
+#build count matrices
+D5 <- countmat_D5[,3:ncol(countmat_D5)] %>% as.matrix()
+rownames(D5) <- countmat_D5$consensus
+```
+
+```{r}
+#D5 - get rid of row sum = 0
+keep <- !(rowSums(D5)==0)
+D5 <- D5[keep,]
+countmat_D5 <- countmat_D5[keep,]
+```
+
+Normalization:
+
+```{r}
+#means and sample coefficient D5
+ggplot(melt(D5), aes(x=Var2, y=value))+
+  geom_boxplot() + 
+  scale_y_log10()+ggtitle("D5 unnormalized") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+S <- estimateSizeFactorsForMatrix(D5+1)
+D5_norm <- t(apply(D5, 1, function(x){x/S}))
+ggplot(melt(D5_norm), aes(x=Var2, y=value))+
+  geom_boxplot() + 
+  scale_y_log10() +ggtitle("D5 normalized") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#write normalized counts
+D5_norm <- as.data.frame(D5_norm)
+D5_norm$consensus <- rownames(D5_norm)
+setcolorder(D5_norm, c(colnames(D5_norm)[ncol(D5_norm)], colnames(D5_norm)[1:(ncol(D5_norm)-1)]))
+write.table(D5_norm,"Counts/counts_D5.norm.DESEQ.txt")
+```
