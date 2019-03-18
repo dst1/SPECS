@@ -7,6 +7,8 @@ The pipeline requires 2 thing:
 - raw fastq files in the folder raw_data
 - remaping file - first colum contains fastq file names and the second the sample name, space delimited and without headers
 
+Preprocessing should take approximately 5 minutes per sample (tested on a Dell XPS 9550 laptop running Kubuntu 18.04)
+
 ## 1. Renaming
 input: fastq files in the folder raw_data
 output: fastq files in the folder `Results/fastq` renamed according to remaping file
