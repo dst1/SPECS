@@ -1,16 +1,16 @@
 #!/bin/bash
 
-work_dir = $1
-scripts_dir = $2
+work_dir=$1
+scripts_dir=$2
 
 cd ${work_dir}
 
 mkdir -p Results
 mkdir -p Results/fastq
-bash move_rename_fastq.sh
 
-for samp in $(cut -f2 sample_remap.txt)
+for samp in $(cat samples.txt)
 do
+    echo $samp
     #FastQC Pre:
     mkdir -p Results/FastQC_pre
     bash ${scripts_dir}/fastqc_pre.sh $samp

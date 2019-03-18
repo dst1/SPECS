@@ -1,7 +1,6 @@
 #!/bin/bash
 
-s=$1
-f=$(sed -n ${s}p sample_remap.txt | cut -f2)
+f=$1
 
 echo $f
 
