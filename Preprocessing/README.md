@@ -7,17 +7,7 @@ The pipeline requires 2 thing:
 - raw fastq files in the folder raw_data
 - samples file - One sample name per line (same as file name - `SAMP.fastq`) 
 
-<<<<<<< HEAD
 ## 1. Fastqc
-=======
-Preprocessing should take approximately 5 minutes per sample (tested on a Dell XPS 9550 laptop running Kubuntu 18.04)
-
-## 1. Renaming
-input: fastq files in the folder raw_data
-output: fastq files in the folder `Results/fastq` renamed according to remaping file
-
-## 2. Fastqc
->>>>>>> a3ceb112468975a65939a46260b04aa6f65707ba
 Fastqc before clipping:
 input: fastq files with sample name in the folder `Results/fastq/$samp.fastq`
 output: fastqc output in the folder `Results/FastQC_pre/Sample_$samp`
