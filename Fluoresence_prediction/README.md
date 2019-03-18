@@ -15,3 +15,8 @@ The output of this notebook is provided in `Fluorescence_Prediction.md` and `Flu
 
 
 `Fluorescence_Prediction.md` is also rendered directly in Github as a notebook with all output inside.
+
+----------
+Running the notebook should take approximately 10 minutes (tested on a Dell XPS 9550 laptop running Kubuntu 18.04).
+
+When running for the first time, Caret may prompt the user to install additional required packages.
