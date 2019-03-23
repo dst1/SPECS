@@ -4,8 +4,9 @@
 `bash RunAll.sh PATH/TO/WORKING/DIR PATH/TO/SCRIPTS/DIR`
 
 The pipeline requires 2 thing:
-- raw fastq files in the folder raw_data
+- raw fastq files in the folder `Results/fastq` with names as in samples file.
 - samples file - One sample name per line (same as file name - `SAMP.fastq`) 
+- Bowtie2 indexes in the working folder in a directory called `Bowtie_inds` (or change the path in bowtie_run script)
 
 ## 1. Fastqc
 Fastqc before clipping:
