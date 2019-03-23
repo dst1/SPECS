@@ -14,7 +14,7 @@ echo "collapse completed - sample ${s}"
 #now align with bowtie
 i=Results/collapsed
 o=Results/bowtie
-ind=/home/doron/GitHub/Bowtie2_inds/
+ind=Bowtie2_inds
 
 mkdir $o
 mkdir $o/Sample_${s}
