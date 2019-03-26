@@ -84,7 +84,6 @@ proms <- proms %>%
 setnames(proms, "variable", "Plasmid")
 
 # A similar process can be used on the validation data:----
-#load("act_countmat_norm.RData")
 col_data_valid <- read.delim("raw_VALID_data/col_data.txt", header = T, stringsAsFactors = F) %>% filter(consensus!="")
 
 folder = paste("raw_VALID_data/",col_data_valid$cell_line[1],"/",sep="")
